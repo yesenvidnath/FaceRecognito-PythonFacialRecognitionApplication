@@ -90,7 +90,7 @@ def index():
 
 if __name__ == '__main__':
     # Setup ngrok
-    ngrok.set_auth_token("2jnO19ZhRu0XgZhaSSj3pUaYFqC_4NgVXQ7tDETn1gEUjXqu6")
+    ngrok.set_auth_token("PUT YOUR NGROCK AUTH TOKEN (if you dont know it  just google it man you will find many information :) you are welcome)")
     public_url = ngrok.connect(5000)
     print(f" * ngrok tunnel \"{public_url}\" -> \"http://127.0.0.1:5000\"")
     app.run()
