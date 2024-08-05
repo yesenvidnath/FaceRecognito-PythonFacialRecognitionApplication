@@ -1,0 +1,14 @@
+torch 
+torchvision 
+facenet-pytorch 
+opencv-python 
+pillow 
+ipython  
+matplotlib
+ngrok
+flask-ngrok
+numpy
+pyngrok
+flask-socketio
+openpyxl
+pandas

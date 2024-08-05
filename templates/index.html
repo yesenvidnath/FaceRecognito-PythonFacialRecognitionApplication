@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Face Recognition</title>
+</head>
+<body>
+    <h1>Live Face Recognition</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <div id="result"></div>
+
+    <script>
+        const video = document.getElementById('video');
+        const result = document.getElementById('result');
+
+        // Get access to the camera
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    video.srcObject = stream;
+                    video.play();
+                })
+                .catch(function(error) {
+                    console.log("Something went wrong!");
+                });
+        }
+
+        // Function to capture frame and send to backend
+        function captureAndProcess() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 640;
+            canvas.height = 480;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const data = canvas.toDataURL('image/jpeg');
+
+            fetch('/process_image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({image: data})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.match) {
+                    result.innerHTML = 'Match: ' + data.match + ' with confidence: ' + data.confidence;
+                } else {
+                    result.innerHTML = data.message;
+                }
+            })
+            .catch(error => {
+                console.log('Error:', error);
+                result.innerHTML = 'Error processing image.';
+            });
+        }
+
+        // Set an interval to capture frames every 3 seconds
+        setInterval(captureAndProcess, 3000);
+    </script>
+</body>
+</html>
