@@ -1,59 +1,92 @@
 
-# Face Recognition Application
+# FaceLib: Face Analysis Application with QR Code Authentication
 
-## Introduction
-This project is a face recognition application that leverages machine learning to identify and verify individuals from images. The application is designed to be used for various purposes such as security, authentication, and personal identification.
+## Overview
+
+This application uses the FaceLib library for face detection, facial expression analysis, age and gender estimation, and face recognition with PyTorch. It incorporates a QR code scanning feature for authentication before starting the face recognition process.
 
 ## Features
-- Face detection and alignment
-- Feature extraction using deep learning models
-- Face recognition and verification
-- Supports multiple image formats
+
+- Face Detection
+- Face Alignment
+- Age & Gender Estimation
+- Facial Expression Recognition
+- Face Recognition
+- QR Code Authentication for Access Control
 
 ## Installation
 
-### Prerequisites
-- Python 3.x
-- Required Python packages (specified in `requirements.txt`)
-
-### Setup
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/your-repo-name.git](https://github.com/yesenvidnath/FaceRecognito-PythonFacialRecognitionApplication.git)
-    cd your-repo-name
+    git clone https://github.com/your-repo/facelib-app.git
     ```
-2. Install the required packages:
+
+2. Navigate to the project directory:
+    ```bash
+    cd facelib-app
+    ```
+
+3. Create and activate a virtual environment:
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows use `venv\\Scripts\\activate`
+    ```
+
+4. Install the required dependencies:
     ```bash
     pip install -r requirements.txt
     ```
 
-3. If using Google Colab, mount your Google Drive:
-    ```python
-    from google.colab import drive
-    drive.mount('/content/drive')
-    ```
-
 ## Usage
-1. Navigate to the project directory:
+
+1. Set up the face images and embeddings:
+    - Place the face images in the `images` directory.
+    - Ensure the `faces.xlsx` file in the `faces` directory contains the names and paths to the images.
+
+2. Run the Flask application:
     ```bash
-    cd /content/drive/MyDrive/face_recognito
+    python app.py
     ```
 
-2. Run the application:
+3. Use ngrok to expose your local server to the internet:
     ```bash
-    python face_recognition.py
+    ngrok http 5000
     ```
 
-3. Follow the on-screen instructions to upload an image and perform face recognition.
+## QR Code Authentication
 
-## Project Structure
-- `face_recognition.py`: Main script to run the face recognition application.
-- `requirements.txt`: List of required Python packages.
-- `models/`: Directory containing pre-trained models for face detection and recognition.
-- `data/`: Directory to store input images and other data.
+The application uses a QR code for authentication. The QR code is scanned using the device's camera, and the scanned code is sent to an API for verification. If the QR code is valid, the user is allowed to proceed to the face recognition process.
 
-## Contributing
-Contributions are welcome! Please feel free to submit a pull request or open an issue to discuss any changes.
+## API Details
+
+- **URL**: `https://api.northstar.mv/api/gym-access/qr`
+- **Method**: `POST`
+- **Headers**:
+    ```json
+    {
+        "Authorization": "Bearer aBcDeFgHiJkLmNoP"
+    }
+    ```
+- **Body**:
+    ```json
+    {
+        "QR": "94:3v3vs94g6lus"
+    }
+    ```
+
+## File Structure
+
+- `app.py`: Main application file.
+- `templates/`: Contains the HTML templates.
+    - `index.html`: QR code scanning and authentication page.
+    - `face_recognition.html`: Face recognition page.
+- `faces/`: Contains the `faces.xlsx` file with names and image paths.
+- `images/`: Directory to store face images.
+- `attendance/`: Directory to store attendance records.
+
+## HTML5-QRCode Library
+
+The application uses the `html5-qrcode` library for QR code scanning. The camera view is responsive, and users can switch between cameras on mobile devices.
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for more details.

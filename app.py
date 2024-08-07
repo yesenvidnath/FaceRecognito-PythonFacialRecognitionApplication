@@ -1,4 +1,5 @@
-from flask import Flask, render_template, Response, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+import requests
 import cv2
 import torch
 from facenet_pytorch import MTCNN, InceptionResnetV1
@@ -14,6 +15,13 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from pyngrok import ngrok
 
 app = Flask(__name__)
+app.secret_key = ''
+
+# API details
+API_URL = "https://api.northstar.mv/api/gym-access/qr"
+API_HEADERS = {
+  "Authorization": "Bearer aBcDeFgHiJkLmNoP"
+}
 
 # Initialize the models
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -38,6 +46,7 @@ for path in image_paths:
     if img_cropped is not None:
         emb = resnet(img_cropped.unsqueeze(0).to(device)).detach()
         embeddings.append(emb)
+
 # Data directory and file setup
 data_dir = 'attendance'
 if not os.path.exists(data_dir):
@@ -65,6 +74,9 @@ def update_dataframe(name):
 
 @app.route('/process_image', methods=['POST'])
 def process_image():
+    if not session.get('verified'):
+        return jsonify({"message": "Unauthorized access"}), 401
+
     data = request.json['image']
     # Decode the image data
     header, encoded = data.split(",", 1)
@@ -84,13 +96,33 @@ def process_image():
             return jsonify({"match": name, "confidence": max_distance.item(), "date": datetime.now().strftime('%Y-%m-%d')})
     return jsonify({"message": "No matching face found"})
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
+    if request.method == 'POST':
+        qr_code = request.form['code']
+        response = requests.post(API_URL, headers=API_HEADERS, json={"QR": qr_code})
+
+        if response.status_code == 200:
+            api_response = response.json()
+            if api_response.get('FID'):
+                session['verified'] = True
+                return redirect(url_for('face_recognition'))
+            else:
+                return render_template('index.html', error='Invalid QR code or unauthorized access')
+        else:
+            return render_template('index.html', error='Failed to verify QR code')
+
     return render_template('index.html')
+
+@app.route('/face_recognition')
+def face_recognition():
+    if not session.get('verified'):
+        return redirect(url_for('index'))
+    return render_template('face_recognition.html')
 
 if __name__ == '__main__':
     # Setup ngrok
-    ngrok.set_auth_token("PUT YOUR NGROCK AUTH TOKEN (if you dont know it  just google it man you will find many information :) you are welcome)")
+    ngrok.set_auth_token("")
     public_url = ngrok.connect(5000)
     print(f" * ngrok tunnel \"{public_url}\" -> \"http://127.0.0.1:5000\"")
     app.run()

@@ -2,61 +2,92 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Live Face Recognition</title>
+    <title>QR Code Verification</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        #reader {
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+            margin: auto;
+        }
+        #reader video {
+            width: 100% !important;
+            height: auto !important;
+        }
+    </style>
 </head>
 <body>
-    <h1>Live Face Recognition</h1>
-    <video id="video" width="640" height="480" autoplay></video>
-    <div id="result"></div>
+    <h1>Scan QR Code to Start Face Recognition</h1>
+    <div id="reader"></div>
+    <button id="flip-camera">Flip Camera</button>
+    <p id="message"></p>
+    <form id="code-form" method="post" action="/" style="display:none;">
+        <input type="hidden" id="code" name="code">
+    </form>
 
     <script>
-        const video = document.getElementById('video');
-        const result = document.getElementById('result');
+        let cameraId = 0;
+        let cameras = [];
+        let currentCameraIndex = 0;
+        const cameraConfig = { fps: 10, qrbox: 250 };
+        const codeReader = new Html5Qrcode("reader");
 
-        // Get access to the camera
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function(stream) {
-                    video.srcObject = stream;
-                    video.play();
-                })
-                .catch(function(error) {
-                    console.log("Something went wrong!");
-                });
+        function onScanSuccess(decodedText, decodedResult) {
+            document.getElementById('code').value = decodedText;
+            document.getElementById('code-form').submit();
         }
 
-        // Function to capture frame and send to backend
-        function captureAndProcess() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 640;
-            canvas.height = 480;
-            const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const data = canvas.toDataURL('image/jpeg');
-
-            fetch('/process_image', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({image: data})
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.match) {
-                    result.innerHTML = 'Match: ' + data.match + ' with confidence: ' + data.confidence;
+        function requestCameraAccess() {
+            Html5Qrcode.getCameras().then(camerasList => {
+                if (camerasList && camerasList.length) {
+                    cameras = camerasList;
+                    cameraId = cameras[currentCameraIndex].id;
+                    startScanning(cameraId);
                 } else {
-                    result.innerHTML = data.message;
+                    document.getElementById('message').innerText = 'No cameras found.';
                 }
-            })
-            .catch(error => {
-                console.log('Error:', error);
-                result.innerHTML = 'Error processing image.';
+            }).catch(err => {
+                console.error(err);
+                document.getElementById('message').innerText = 'Error accessing camera: ' + err;
             });
         }
 
-        // Set an interval to capture frames every 3 seconds
-        setInterval(captureAndProcess, 3000);
+        function startScanning(cameraId) {
+            codeReader.start(
+                { deviceId: { exact: cameraId } },
+                cameraConfig,
+                onScanSuccess
+            ).catch(err => {
+                console.error(err);
+                document.getElementById('message').innerText = 'Unable to start scanning: ' + err;
+            });
+        }
+
+        document.getElementById('flip-camera').addEventListener('click', function() {
+            if (cameras.length > 1) {
+                currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
+                cameraId = cameras[currentCameraIndex].id;
+                codeReader.stop().then(() => {
+                    startScanning(cameraId);
+                }).catch(err => {
+                    console.error('Failed to stop the camera:', err);
+                });
+            }
+        });
+
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    requestCameraAccess();
+                })
+                .catch(err => {
+                    console.error('Camera permission denied:', err);
+                    document.getElementById('message').innerText = 'Camera permission denied: ' + err;
+                });
+        } else {
+            document.getElementById('message').innerText = 'Camera not supported by this browser.';
+        }
     </script>
 </body>
 </html>
