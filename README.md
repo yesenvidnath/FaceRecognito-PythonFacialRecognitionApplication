@@ -18,7 +18,7 @@ This application uses the FaceLib library for face detection, facial expression 
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/your-repo/facelib-app.git
+    git clone https://github.com/your-repo/facelib-app.git](https://github.com/yesenvidnath/FaceRecognito-PythonFacialRecognitionApplication/)
     ```
 
 2. Navigate to the project directory:
