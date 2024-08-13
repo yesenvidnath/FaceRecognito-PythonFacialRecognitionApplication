@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scan QR Code</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #343a40;
+        }
+
+        .scanner-container {
+            max-width: 600px;
+            width: 100%;
+            padding: 20px;
+            background-color: #495057;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            color: white;
+        }
+
+        #reader {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 20px;
+            border: 2px solid #6c757d;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #message {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            color: #ced4da;
+        }
+    </style>
+</head>
+<body>
+
+<div class="scanner-container">
+    <h2 class="mb-4">Scan QR Code</h2>
+    <div id="reader"></div>
+    <p id="message">Point the camera at the QR code</p>
+</div>
+
+<!-- Include the Html5Qrcode library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+
+<script>
+    const qrCodeReader = new Html5Qrcode("reader");
+
+    function onScanSuccess(decodedText, decodedResult) {
+        // Stop the scanner after a successful scan
+        qrCodeReader.stop().then(ignore => {
+            console.log("QR Code scanning stopped.");
+        }).catch(err => {
+            console.error("Error stopping the QR code scan:", err);
+        });
+
+        // Automatically submit the QR code and start the process
+        fetch('/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ code: decodedText })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.redirect) {
+                // Redirect to the appropriate page based on server response
+                window.location.href = data.redirect;
+            } else {
+                document.getElementById('message').innerText = 'QR code recognized but no action taken.';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('message').innerText = 'An error occurred while processing the QR code.';
+        });
+    }
+
+    function onScanFailure(error) {
+        console.warn(`QR code scan failed: ${error}`);
+    }
+
+    function startScanner() {
+        qrCodeReader.start({ facingMode: "environment" }, {
+            fps: 10,
+            qrbox: 250
+        }, onScanSuccess, onScanFailure)
+        .catch(err => {
+            document.getElementById('message').innerText = 'Unable to access camera.';
+            console.error(`Error starting QR code scan: ${err}`);
+        });
+    }
+
+    // Request camera permission before starting the scanner
+    navigator.mediaDevices.getUserMedia({ video: true })
+    .then(function(stream) {
+        document.getElementById('message').innerText = 'Camera permission granted. Starting scanner...';
+        startScanner();
+    })
+    .catch(function(error) {
+        document.getElementById('message').innerText = 'Camera permission denied. Please enable camera access.';
+        console.error('Camera permission denied:', error);
+    });
+</script>
+
+<!-- Bootstrap 5 JS and dependencies -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

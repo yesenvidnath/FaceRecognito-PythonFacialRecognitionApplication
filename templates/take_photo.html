@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Live Face Recognition</title>
+    <title>Take a Photo</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -17,7 +17,7 @@
             color: white;
         }
 
-        .recognition-container {
+        .photo-container {
             max-width: 700px;
             width: 100%;
             padding: 20px;
@@ -35,6 +35,12 @@
             border: 2px solid #6c757d;
         }
 
+        #capture {
+            font-size: 1.2rem;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+        }
+
         #result {
             margin-top: 20px;
             font-size: 1.1rem;
@@ -44,14 +50,16 @@
 </head>
 <body>
 
-<div class="recognition-container">
-    <h2 class="mb-4">Live Face Recognition</h2>
+<div class="photo-container">
+    <h2 class="mb-4">Take a Photo</h2>
     <video id="video" autoplay></video>
-    <div id="result">Processing...</div>
+    <button id="capture" class="btn btn-primary">Capture</button>
+    <div id="result"></div>
 </div>
 
 <script>
     const video = document.getElementById('video');
+    const captureButton = document.getElementById('capture');
     const result = document.getElementById('result');
 
     // Get access to the camera
@@ -63,14 +71,11 @@
             })
             .catch(function(error) {
                 console.log("Something went wrong!", error);
-                result.innerHTML = 'Unable to access the camera. Please check your permissions.';
             });
-    } else {
-        result.innerHTML = 'Your browser does not support accessing the camera.';
     }
 
-    // Function to capture frame and send to backend
-    function captureAndProcess() {
+    // Capture the photo
+    captureButton.addEventListener('click', function() {
         const canvas = document.createElement('canvas');
         canvas.width = 640;
         canvas.height = 480;
@@ -78,7 +83,7 @@
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         const data = canvas.toDataURL('image/jpeg');
 
-        fetch('/process_image', {
+        fetch('/take_photo', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -87,20 +92,18 @@
         })
         .then(response => response.json())
         .then(data => {
-            if (data.match) {
-                result.innerHTML = 'Match: ' + data.match + ' with confidence: ' + data.confidence.toFixed(2);
+            if (data.message === "Photo taken and saved") {
+                // Redirect to face recognition after successful image capture
+                window.location.href = "/face_recognition";
             } else {
-                result.innerHTML = data.message;
+                result.innerHTML = 'Error saving photo: ' + data.message;
             }
         })
         .catch(error => {
             console.log('Error:', error);
-            result.innerHTML = 'Error processing image.';
+            result.innerHTML = 'Error taking photo.';
         });
-    }
-
-    // Set an interval to capture frames every 3 seconds
-    setInterval(captureAndProcess, 3000);
+    });
 </script>
 
 <!-- Bootstrap 5 JS and dependencies -->

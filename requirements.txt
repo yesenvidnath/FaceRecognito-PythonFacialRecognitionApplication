@@ -12,3 +12,5 @@ pyngrok
 flask-socketio
 openpyxl
 pandas
+flask_sqlalchemy
+apscheduler
