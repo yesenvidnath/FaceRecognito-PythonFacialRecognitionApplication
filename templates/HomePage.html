@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to ABC Gym</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #000; /* Fallback in case the image doesn't load */
+        }
+
+        .bg-image {
+            background-image: url('https://www.pentfitness.com/cdn/shop/files/ATE_P15_Home_gym_prev01_HR.jpg'); /* Replace with your image URL */
+            background-size: cover;
+            background-position: center;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            filter: brightness(0.5); /* Dark overlay */
+        }
+
+        .content {
+            position: relative;
+            z-index: 2; /* Ensure content is above the overlay */
+            text-align: center;
+            color: white;
+        }
+
+        .content h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+        }
+
+        .btn-custom {
+            font-size: 1.2rem;
+            padding: 0.75rem 2rem;
+            margin: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-image"></div>
+
+<div class="content">
+    <h1>Welcome to ABC Gym</h1>
+    <a href="/direct_face_recognition" class="btn btn-primary btn-custom">Recognize Face</a>
+    <a href="/qr_scan" class="btn btn-secondary btn-custom">Scan QR Code</a>
+</div>
+
+<!-- Bootstrap 5 JS and dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
